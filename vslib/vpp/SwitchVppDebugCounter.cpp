@@ -93,6 +93,62 @@ sai_status_t SwitchVpp::queryDebugCounterCapability(
     }
 }
 
+sai_status_t SwitchVpp::queryPortStatsCapability(
+        _Inout_ sai_stat_capability_list_t *stats_capability)
+{
+    SWSS_LOG_ENTER();
+
+    // syncd only polls port stats that this reports. The drop monitor polls
+    // each debug counter's port stat through the regular port counter context,
+    // so the per-index debug counter stats have to be listed here as well.
+    sai_stat_capability_list_t base;
+
+    base.count = 0;
+    base.list = nullptr;
+
+    sai_status_t status = SwitchStateBase::queryPortStatsCapability(&base);
+
+    if (status != SAI_STATUS_BUFFER_OVERFLOW && status != SAI_STATUS_SUCCESS)
+    {
+        return status;
+    }
+
+    std::vector<sai_stat_capability_t> list(base.count);
+
+    base.list = list.data();
+
+    CHECK_STATUS(SwitchStateBase::queryPortStatsCapability(&base));
+
+    list.resize(base.count);
+
+    for (uint32_t i = 0; i < static_cast<uint32_t>(maxDebugCounters); i++)
+    {
+        sai_stat_capability_t capability;
+
+        capability.stat_enum = static_cast<sai_stat_id_t>(SAI_PORT_STAT_IN_DROP_REASON_RANGE_BASE + i);
+        capability.stat_modes = SAI_STATS_MODE_READ_AND_CLEAR | SAI_STATS_MODE_READ;
+
+        list.push_back(capability);
+    }
+
+    uint32_t count = static_cast<uint32_t>(list.size());
+
+    if (stats_capability->count < count)
+    {
+        stats_capability->count = count;
+        return SAI_STATUS_BUFFER_OVERFLOW;
+    }
+
+    stats_capability->count = count;
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        stats_capability->list[i] = list[i];
+    }
+
+    return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t SwitchVpp::debugCounterCreate(
         _In_ sai_object_id_t object_id,
         _In_ sai_object_id_t switch_id,

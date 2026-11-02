@@ -131,6 +131,9 @@ namespace saivs
                     _In_ sai_attr_id_t attr_id,
                     _Inout_ sai_s32_list_t *enum_values_capability) override;
 
+            virtual sai_status_t queryPortStatsCapability(
+                    _Inout_ sai_stat_capability_list_t *stats_capability) override;
+
         private: // debug (configurable drop) counters, SwitchVppDebugCounter.cpp
 
             struct VppDebugCounter
