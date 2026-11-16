@@ -57,12 +57,14 @@ namespace saivs
 
         private:
 
-            // Configurable limits (defaults from SwitchStateBase)
+            // Configurable limits (defaults from SwitchStateBase, except FDB
+            // and neighbor, which must stay within VPP's own L2 learn limit
+            // and 50000 per-family ip neighbor limit)
             uint32_t m_maxIPv4RouteEntries = 100000;
             uint32_t m_maxIPv6RouteEntries = 10000;
-            uint32_t m_maxFdbEntries = 800;
-            uint32_t m_maxIPv4NeighborEntries = 4000;
-            uint32_t m_maxIPv6NeighborEntries = 2000;
+            uint32_t m_maxFdbEntries = 16384;
+            uint32_t m_maxIPv4NeighborEntries = 16384;
+            uint32_t m_maxIPv6NeighborEntries = 16384;
             uint32_t m_maxIPv4NextHopEntries = 32000;
             uint32_t m_maxIPv6NextHopEntries = 32000;
             uint32_t m_maxNextHopGroupEntries = 400;
